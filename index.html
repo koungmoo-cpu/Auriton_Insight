@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auriton AI 운명 진단</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+    window.CLAUDE_API_KEY = 'your-claude-api-key-here';
+</script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Auriton AI 운명 진단</h1>
+            <p class="subtitle">당신의 운명을 분석해드립니다</p>
+        </div>
+        
+        <form id="sajuForm" class="form-container">
+            <div class="form-group">
+                <label for="userName">성함 <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="userName" 
+                    name="userName"
+                    placeholder="예: 홍길동 또는 John Smith"
+                    maxlength="100"
+                    required
+                >
+                <span class="error-message" id="userNameError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="location">태어난 지역 <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="location" 
+                    name="location"
+                    placeholder="예: 서울, 부산, 경기도 수원시"
+                    required
+                >
+                <span class="error-message" id="locationError"></span>
+            </div>
+
+            <div class="form-group gender-group">
+                <label>성별 <span class="required">*</span></label>
+                <div class="gender-toggle">
+                    <label class="gender-check">
+                        <input type="checkbox" id="genderMale" onclick="selectGenderCheckbox('male')">
+                        <span>남성</span>
+                    </label>
+                    <label class="gender-check">
+                        <input type="checkbox" id="genderFemale" onclick="selectGenderCheckbox('female')">
+                        <span>여성</span>
+                    </label>
+                </div>
+                <input type="hidden" id="gender" name="gender">
+                <span class="error-message" id="genderError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="birthDateInput">생년월일 <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="birthDateInput" 
+                    name="birthDateInput"
+                    placeholder="예: 19900101"
+                    inputmode="numeric"
+                    maxlength="8"
+                    required
+                >
+                <span class="error-message" id="birthDateError"></span>
+            </div>
+            
+            <div class="form-group">
+                <label for="birthTime">태어난 시간 <span class="required">*</span></label>
+                <div class="time-select-container">
+                    <select id="birthTime" name="birthTime" required>
+                        <option value="" disabled selected>시간을 선택하세요</option>
+                        <option value="unknown">시간 모름</option>
+                        <option value="00:00">조자/朝子 (00:00~01:29)</option>
+                        <option value="01:30">축/丑 (01:30~03:29)</option>
+                        <option value="03:30">인/寅 (03:30~05:29)</option>
+                        <option value="05:30">묘/卯 (05:30~07:29)</option>
+                        <option value="07:30">진/辰 (07:30~09:29)</option>
+                        <option value="09:30">사/巳 (09:30~11:29)</option>
+                        <option value="11:30">오/午 (11:30~13:29)</option>
+                        <option value="13:30">미/未 (13:30~15:29)</option>
+                        <option value="15:30">신/申 (15:30~17:29)</option>
+                        <option value="17:30">유/酉 (17:30~19:29)</option>
+                        <option value="19:30">술/戌 (19:30~21:29)</option>
+                        <option value="21:30">해/亥 (21:30~23:29)</option>
+                        <option value="23:30">야자/夜子 (23:30~23:59)</option>
+                    </select>
+                </div>
+                <span class="error-message" id="birthTimeError"></span>
+            </div>
+            
+            <div class="form-group">
+                <label for="calendarType">달력 선택 <span class="required">*</span></label>
+                <select id="calendarType" name="calendarType" required>
+                    <option value="">선택해주세요</option>
+                    <option value="solar">양력</option>
+                    <option value="lunar">음력(평달)</option>
+                    <option value="lunar_leap">음력(윤달)</option>
+                </select>
+                <span class="error-message" id="calendarTypeError"></span>
+            </div>
+            
+            <button 
+                type="submit" 
+                id="analyzeBtn" 
+                class="analyze-button" 
+                disabled
+            >
+                분석 시작
+            </button>
+        </form>
+
+        <div id="resultArea" class="result-area" style="display: none;">
+            <h3>분석 결과 (Raw Data)</h3>
+            <p id="sajuData"></p>
+            <p id="astrologyData"></p>
+            <hr>
+            <h3>AI 상담사 인터프리팅</h3>
+            <div id="chatContainer" class="chat-container">
+                <div id="chatMessages" class="chat-messages"></div>
+                <div class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="질문을 입력해주세요..."
+                        maxlength="500"
+                    >
+                    <button 
+                        type="button" 
+                        id="sendButton" 
+                        class="send-button"
+                        onclick="sendUserMessage()"
+                    >
+                        전송
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- lunar-javascript 라이브러리 (음력 계산용) -->
+    <script src="https://cdn.jsdelivr.net/gh/6tail/lunar-javascript@latest/lunar.min.js"></script>
+    <!-- 대체: GitHub Gist 버전 -->
+    <script>
+        // lunar-javascript가 로드되지 않을 경우를 대비한 fallback
+        if (typeof Lunar === 'undefined') {
+            console.warn('lunar-javascript가 로드되지 않았습니다. 대체 방법을 사용합니다.');
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
