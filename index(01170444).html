@@ -270,6 +270,10 @@
                 <h3 class="text-xl font-bold text-white flex items-center gap-2">🔮 AI 상담 결과</h3>
             </div>
             <div id="chatMessages" class="chat-messages p-4 space-y-4"></div>
+            <div class="p-4 border-t border-white/10 flex gap-3">
+                <input type="text" id="chatInput" class="chat-input flex-1 p-3 rounded-xl" placeholder="추가 질문을 입력해주세요..." maxlength="500">
+                <button type="button" id="sendButton" class="send-btn px-6 py-3 rounded-xl font-bold text-white">전송</button>
+            </div>
         </div>
 
         <!-- 추가 질문 섹션 -->
@@ -444,6 +448,8 @@
         const birthTime = document.getElementById('birthTime');
         const calendarType = document.getElementById('calendarType');
         const analyzeBtn = document.getElementById('analyzeBtn');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
         const userQuestion = document.getElementById('userQuestion');
         const charCount = document.getElementById('charCount');
         const sendQuestionBtn = document.getElementById('sendQuestionBtn');
@@ -556,7 +562,46 @@
             }
         });
         
-        // ============ AI 메시지 표시 ============
+        // ============ 채팅 기능 ============
+        async function sendChat() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            chatInput.value = '';
+            addUserMessage(message);
+            sendButton.disabled = true;
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userMessage: message,
+                        rawData: window.globalRawData
+                    })
+                });
+                
+                const result = await response.json();
+                await addAIMessage(result.success ? result.answer : '답변 생성 중 오류가 발생했습니다.');
+            } catch (error) {
+                await addAIMessage('서버 연결에 실패했습니다.');
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+        
+        sendButton.addEventListener('click', sendChat);
+        chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+        
+        function addUserMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'user-message p-4 rounded-xl text-white/90 ml-8';
+            div.textContent = text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
         async function addAIMessage(text) {
             const chatMessages = document.getElementById('chatMessages');
             const div = document.createElement('div');
