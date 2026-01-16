@@ -3,26 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auriton AI 운명 진단</title>
+    <title>Auriton InsightAI - 운명 진단</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script>
-    window.CLAUDE_API_KEY = 'your-claude-api-key-here';
-</script>
+    <style>
+        * {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4e 50%, #0d1333 100%);
+            min-height: 100vh;
+        }
+        
+        /* 헤더 배너 스타일 */
+        .header-banner {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+        }
+        
+        .header-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        .header-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(to top, #0a0e27 0%, transparent 100%);
+        }
+        
+        /* 폼 컨테이너 */
+        .form-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 입력 필드 스타일 */
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #60a5fa;
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+            outline: none;
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 셀렉트 박스 */
+        .select-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        
+        .select-field option {
+            background: #1a1f4e;
+            color: #fff;
+        }
+        
+        /* 성별 토글 */
+        .gender-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .gender-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .gender-btn.selected {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* 분석 버튼 */
+        .analyze-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .analyze-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .analyze-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .analyze-btn:not(:disabled):hover::before {
+            left: 100%;
+        }
+        
+        /* 라벨 스타일 */
+        .label-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+        
+        .label-text .required {
+            color: #f87171;
+        }
+        
+        /* 에러 메시지 */
+        .error-message {
+            color: #f87171;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* 결과 영역 */
+        .result-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-messages {
+            background: rgba(0, 0, 0, 0.2);
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .ai-message {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-left: 3px solid #60a5fa;
+        }
+        
+        .user-message {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        
+        .chat-input:focus {
+            border-color: #60a5fa;
+            outline: none;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+        
+        .send-btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        /* 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Auriton AI 운명 진단</h1>
-            <p class="subtitle">당신의 운명을 분석해드립니다</p>
-        </div>
+    <!-- 헤더 배너 -->
+    <div class="header-banner">
+        <img src="Auriton_Insight.png" alt="Auriton InsightAI">
+        <div class="header-overlay"></div>
+    </div>
+    
+    <!-- 메인 컨테이너 -->
+    <div class="container mx-auto max-w-xl px-4 -mt-16 relative z-10 pb-10">
         
-        <form id="sajuForm" class="form-container">
-            <div class="form-group">
-                <label for="userName">성함 <span class="required">*</span></label>
+        <!-- 폼 -->
+        <form id="sajuForm" class="form-container rounded-3xl p-8 space-y-6 animate-fadeInUp">
+            <!-- 성함 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">성함 <span class="required">*</span></label>
                 <input 
                     type="text" 
                     id="userName" 
                     name="userName"
+                    class="input-field w-full p-3.5 rounded-xl" 
                     placeholder="예: 홍길동 또는 John Smith"
                     maxlength="100"
                     required
@@ -30,41 +252,44 @@
                 <span class="error-message" id="userNameError"></span>
             </div>
 
-            <div class="form-group">
-                <label for="location">태어난 지역 <span class="required">*</span></label>
+            <!-- 태어난 지역 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">태어난 지역 <span class="required">*</span></label>
                 <input 
                     type="text" 
                     id="location" 
                     name="location"
+                    class="input-field w-full p-3.5 rounded-xl" 
                     placeholder="예: 서울, 부산, 경기도 수원시"
                     required
                 >
                 <span class="error-message" id="locationError"></span>
             </div>
 
-            <div class="form-group gender-group">
-                <label>성별 <span class="required">*</span></label>
-                <div class="gender-toggle">
-                    <label class="gender-check">
-                        <input type="checkbox" id="genderMale" onclick="selectGenderCheckbox('male')">
-                        <span>남성</span>
-                    </label>
-                    <label class="gender-check">
-                        <input type="checkbox" id="genderFemale" onclick="selectGenderCheckbox('female')">
-                        <span>여성</span>
-                    </label>
+            <!-- 성별 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">성별 <span class="required">*</span></label>
+                <div class="flex gap-4">
+                    <button type="button" id="genderMale" class="gender-btn flex-1 py-3 rounded-xl font-medium">
+                        👨 남성
+                    </button>
+                    <button type="button" id="genderFemale" class="gender-btn flex-1 py-3 rounded-xl font-medium">
+                        👩 여성
+                    </button>
                 </div>
-                <input type="hidden" id="gender" name="gender">
+                <input type="hidden" id="gender" name="gender" value="">
                 <span class="error-message" id="genderError"></span>
             </div>
 
-            <div class="form-group">
-                <label for="birthDateInput">생년월일 <span class="required">*</span></label>
+            <!-- 생년월일 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">생년월일 <span class="required">*</span></label>
                 <input 
                     type="text" 
                     id="birthDateInput" 
                     name="birthDateInput"
-                    placeholder="예: 19900101"
+                    class="input-field w-full p-3.5 rounded-xl"
+                    placeholder="예: 19900101 (8자리)"
                     inputmode="numeric"
                     maxlength="8"
                     required
@@ -72,225 +297,350 @@
                 <span class="error-message" id="birthDateError"></span>
             </div>
             
-            <div class="form-group">
-                <label for="birthTime">태어난 시간 <span class="required">*</span></label>
-                <div class="time-select-container">
-                    <select id="birthTime" name="birthTime" required>
-                        <option value="" disabled selected>시간을 선택하세요</option>
-                        <option value="unknown">시간 모름</option>
-                        <option value="00:00">조자/朝子 (00:00~01:29)</option>
-                        <option value="01:30">축/丑 (01:30~03:29)</option>
-                        <option value="03:30">인/寅 (03:30~05:29)</option>
-                        <option value="05:30">묘/卯 (05:30~07:29)</option>
-                        <option value="07:30">진/辰 (07:30~09:29)</option>
-                        <option value="09:30">사/巳 (09:30~11:29)</option>
-                        <option value="11:30">오/午 (11:30~13:29)</option>
-                        <option value="13:30">미/未 (13:30~15:29)</option>
-                        <option value="15:30">신/申 (15:30~17:29)</option>
-                        <option value="17:30">유/酉 (17:30~19:29)</option>
-                        <option value="19:30">술/戌 (19:30~21:29)</option>
-                        <option value="21:30">해/亥 (21:30~23:29)</option>
-                        <option value="23:30">야자/夜子 (23:30~23:59)</option>
-                    </select>
-                </div>
+            <!-- 태어난 시간 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">태어난 시간 <span class="required">*</span></label>
+                <select id="birthTime" name="birthTime" class="select-field w-full p-3.5 rounded-xl" required>
+                    <option value="" disabled selected>시간을 선택하세요</option>
+                    <option value="unknown">🕐 시간 모름</option>
+                    <option value="00:00">🌙 조자/朝子 (00:00~01:29)</option>
+                    <option value="01:30">🐂 축/丑 (01:30~03:29)</option>
+                    <option value="03:30">🐅 인/寅 (03:30~05:29)</option>
+                    <option value="05:30">🐇 묘/卯 (05:30~07:29)</option>
+                    <option value="07:30">🐉 진/辰 (07:30~09:29)</option>
+                    <option value="09:30">🐍 사/巳 (09:30~11:29)</option>
+                    <option value="11:30">🐴 오/午 (11:30~13:29)</option>
+                    <option value="13:30">🐑 미/未 (13:30~15:29)</option>
+                    <option value="15:30">🐵 신/申 (15:30~17:29)</option>
+                    <option value="17:30">🐔 유/酉 (17:30~19:29)</option>
+                    <option value="19:30">🐕 술/戌 (19:30~21:29)</option>
+                    <option value="21:30">🐖 해/亥 (21:30~23:29)</option>
+                    <option value="23:30">🌙 야자/夜子 (23:30~23:59)</option>
+                </select>
                 <span class="error-message" id="birthTimeError"></span>
             </div>
             
-            <div class="form-group">
-                <label for="calendarType">달력 선택 <span class="required">*</span></label>
-                <select id="calendarType" name="calendarType" required>
+            <!-- 달력 선택 -->
+            <div class="space-y-2">
+                <label class="label-text block text-sm">달력 선택 <span class="required">*</span></label>
+                <select id="calendarType" name="calendarType" class="select-field w-full p-3.5 rounded-xl" required>
                     <option value="">선택해주세요</option>
-                    <option value="solar">양력</option>
-                    <option value="lunar">음력(평달)</option>
-                    <option value="lunar_leap">음력(윤달)</option>
+                    <option value="solar">☀️ 양력</option>
+                    <option value="lunar">🌙 음력(평달)</option>
+                    <option value="lunar_leap">🌕 음력(윤달)</option>
                 </select>
                 <span class="error-message" id="calendarTypeError"></span>
             </div>
             
+            <!-- 분석 버튼 -->
             <button 
                 type="submit" 
                 id="analyzeBtn" 
-                class="analyze-button" 
+                class="analyze-btn w-full text-white py-4 rounded-2xl font-bold text-lg shadow-lg mt-4"
                 disabled
             >
-                분석 시작
+                ✨ 운명 분석 시작
             </button>
         </form>
 
-        <div id="resultArea" class="result-area" style="display: none;">
-            <h3>분석 결과 (Raw Data)</h3>
-            <p id="sajuData"></p>
-            <p id="astrologyData"></p>
-            <hr>
-            <h3>AI 상담사 인터프리팅</h3>
-            <div id="chatContainer" class="chat-container">
-                <div id="chatMessages" class="chat-messages"></div>
-                <div class="chat-input-container">
-                    <input 
-                        type="text" 
-                        id="chatInput" 
-                        class="chat-input" 
-                        placeholder="질문을 입력해주세요..."
-                        maxlength="500"
-                    >
-                    <button 
-                        type="button" 
-                        id="sendButton" 
-                        class="send-button"
-                        onclick="sendUserMessage()"
-                    >
-                        전송
-                    </button>
-                </div>
+        <!-- 결과 영역 -->
+        <div id="resultArea" class="result-container rounded-3xl mt-8 overflow-hidden" style="display: none;">
+            <div class="p-6 border-b border-white/10">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    🔮 AI 상담 결과
+                </h3>
+            </div>
+            
+            <div id="chatMessages" class="chat-messages p-4 space-y-4"></div>
+            
+            <div class="p-4 border-t border-white/10 flex gap-3">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="chat-input flex-1 p-3 rounded-xl" 
+                    placeholder="추가 질문을 입력해주세요..."
+                    maxlength="500"
+                >
+                <button 
+                    type="button" 
+                    id="sendButton" 
+                    class="send-btn px-6 py-3 rounded-xl font-bold text-white"
+                >
+                    전송
+                </button>
             </div>
         </div>
-    </div>
 
-    <script>
-// 1. 초기 분석이 완료된 후 이 함수를 실행하여 질문창을 보여줍니다.
-function showAdditionalQuestion() {
-    const section = document.getElementById('additional-question-section');
-    if (section) {
-        section.style.display = 'block'; // 숨겨진 섹션을 나타냄
-        section.scrollIntoView({ behavior: 'smooth' }); // 자연스럽게 아래로 스크롤
-    }
-}
+        <!-- 추가 질문 섹션 -->
+        <div id="additional-question-section" class="result-container rounded-3xl mt-6 p-6" style="display: none;">
+            <label class="label-text block mb-3 font-bold">
+                💬 AI 상담사에게 추가 질문하기
+            </label>
+            
+            <div class="relative">
+                <textarea 
+                    id="userQuestion" 
+                    maxlength="200"
+                    class="input-field w-full p-4 pb-10 rounded-2xl resize-none"
+                    placeholder="상담 내용 중 궁금한 점을 물어보세요."
+                    rows="3"
+                ></textarea>
+                
+                <div class="absolute bottom-3 right-4 text-xs text-white/50">
+                    <span id="charCount" class="font-semibold">0</span>/200
+                </div>
+            </div>
 
-// 2. 실시간 글자 수 카운터 로직
-const questionInput = document.getElementById('userQuestion');
-const charCountDisplay = document.getElementById('charCount');
-
-if (questionInput && charCountDisplay) {
-    questionInput.addEventListener('input', function() {
-        const length = this.value.length;
-        charCountDisplay.innerText = length;
+            <button id="sendQuestionBtn" type="button" class="analyze-btn w-full text-white py-4 rounded-2xl font-bold mt-4">
+                질문 전송하기
+            </button>
+        </div>
         
-        // 180자 이상 시 시각적 경고
-        if (length >= 180) {
-            charCountDisplay.className = 'text-xs font-bold text-red-500';
-        } else {
-            charCountDisplay.className = 'text-xs font-semibold text-gray-400';
-        }
-    });
-}
-
-// 3. 기존 분석 성공 시점에 showAdditionalQuestion()을 호출하도록 연결하세요.
-// 예: result.success일 때 UI를 그린 후 showAdditionalQuestion() 실행
-</script>
-
-<div id="additional-question-section" class="mt-8 border-t pt-6" style="display: none;">
-    <label class="block text-gray-700 font-bold mb-3 ml-1">
-        AI 상담사에게 추가 질문하기 (200자 제한)
-    </label>
-    
-    <div class="relative">
-        <textarea 
-            id="userQuestion" 
-            maxlength="200"
-            class="w-full p-4 pb-12 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none resize-none transition-all shadow-sm"
-            placeholder="상담 내용 중 궁금한 점을 물어보세요."
-            rows="3"
-        ></textarea>
-        
-        <div class="absolute bottom-4 right-5 flex items-center bg-white/90 px-2 py-0.5 rounded-lg pointer-events-none">
-            <span id="charCount" class="text-xs font-semibold text-gray-400">0</span>
-            <span class="text-xs text-gray-300">/200</span>
+        <!-- 푸터 -->
+        <div class="text-center mt-8 text-white/30 text-sm">
+            <p>© 2025 Auriton InsightAI. All rights reserved.</p>
         </div>
     </div>
-
-    <button id="sendQuestionBtn" class="w-full mt-4 bg-blue-900 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
-        질문 전송하기
-    </button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/gh/6tail/lunar-javascript@latest/lunar.min.js"></script>
-<script src="script.js"></script>
-
-<script>
-// ✅ 질문창 노출 함수
-function showAdditionalQuestion() {
-    const section = document.getElementById('additional-question-section');
-    if (section) {
-        section.style.display = 'block';
-        section.scrollIntoView({ behavior: 'smooth' });
-        console.log("🚀 추가 질문창 활성화 완료");
-    }
-}
-
-// ✅ 200자 실시간 카운터 로직
-const questionInput = document.getElementById('userQuestion');
-const charCountDisplay = document.getElementById('charCount');
-
-if (questionInput && charCountDisplay) {
-    questionInput.addEventListener('input', function() {
-        const length = this.value.length;
-        charCountDisplay.innerText = length;
-
-        if (length >= 180) {
-            charCountDisplay.classList.add('text-red-500', 'font-bold');
-        } else {
-            charCountDisplay.classList.remove('text-red-500', 'font-bold');
-        }
-    });
-}
-
-// ✅ 질문 전송 버튼 이벤트
-document.getElementById('sendQuestionBtn').addEventListener('click', async () => {
-    const message = questionInput.value.trim();
-    if (!message) return alert("질문을 입력해주세요.");
     
-    const btn = document.getElementById('sendQuestionBtn');
-    btn.disabled = true; // 중복 클릭 방지
+    <!-- lunar-javascript 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/gh/6tail/lunar-javascript@latest/lunar.min.js"></script>
     
-    await sendChatMessage(message);
+    <!-- 메인 스크립트 -->
+    <script src="script.js"></script>
     
-    btn.disabled = false;
-});
-
-// ✅ 추가 질문 전송 및 답변 처리 함수
-async function sendChatMessage(userMessage) {
-    const section = document.getElementById('additional-question-section');
-    const questionContainer = section.querySelector('.relative'); // 입력창 영역 보존
-    
-    // 로딩 표시 추가 (기존 입력창 아래에 생성)
-    const loadingMsg = document.createElement('p');
-    loadingMsg.className = 'text-blue-600 animate-pulse font-bold p-4 text-center';
-    loadingMsg.innerText = '✨ Simon님의 사주를 바탕으로 답변을 분석 중입니다...';
-    section.appendChild(loadingMsg);
-
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userMessage: userMessage,
-                rawData: window.globalRawData // 분석 시 저장해둔 전역 변수
-            })
-        });
-
-        const result = await response.json();
-        loadingMsg.remove(); // 로딩 제거
-
-        if (result.success) {
-            // 답변 박스 생성
-            const answerBox = document.createElement('div');
-            answerBox.className = "mt-4 p-5 bg-blue-50 rounded-2xl border-l-4 border-blue-500 shadow-sm";
-            answerBox.innerHTML = `
-                <p class="font-bold text-gray-800 mb-2 text-sm">나의 질문: ${userMessage}</p>
-                <p class="text-gray-700 leading-relaxed"><span class="font-bold text-blue-600">답변:</span> ${result.answer}</p>
-            `;
-            section.appendChild(answerBox);
+    <!-- 인라인 초기화 스크립트 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 로드 완료');
             
-            // 입력창 초기화
-            questionInput.value = '';
-            charCountDisplay.innerText = '0';
-        }
-    } catch (error) {
-        console.error("통신 오류:", error);
-        loadingMsg.remove();
-        alert("서버 연결에 실패했습니다.");
-    }
-}
-</script>
+            // ============ 성별 선택 ============
+            const genderMale = document.getElementById('genderMale');
+            const genderFemale = document.getElementById('genderFemale');
+            const genderInput = document.getElementById('gender');
+            
+            function selectGender(value) {
+                console.log('성별 선택:', value);
+                
+                genderMale.classList.remove('selected');
+                genderFemale.classList.remove('selected');
+                
+                if (value === 'male') {
+                    genderMale.classList.add('selected');
+                } else {
+                    genderFemale.classList.add('selected');
+                }
+                
+                genderInput.value = value;
+                document.getElementById('genderError').textContent = '';
+                checkFormValidity();
+            }
+            
+            genderMale.addEventListener('click', () => selectGender('male'));
+            genderFemale.addEventListener('click', () => selectGender('female'));
+            
+            // ============ 폼 유효성 검사 ============
+            const userName = document.getElementById('userName');
+            const location = document.getElementById('location');
+            const birthDateInput = document.getElementById('birthDateInput');
+            const birthTime = document.getElementById('birthTime');
+            const calendarType = document.getElementById('calendarType');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            
+            function checkFormValidity() {
+                const isValid = 
+                    userName.value.trim().length > 0 &&
+                    location.value.trim().length > 0 &&
+                    (genderInput.value === 'male' || genderInput.value === 'female') &&
+                    /^\d{8}$/.test(birthDateInput.value.trim()) &&
+                    birthTime.value !== '' &&
+                    calendarType.value !== '';
+                
+                analyzeBtn.disabled = !isValid;
+                console.log('폼 유효성:', isValid);
+                return isValid;
+            }
+            
+            // 이벤트 리스너
+            userName.addEventListener('input', checkFormValidity);
+            location.addEventListener('input', checkFormValidity);
+            birthTime.addEventListener('change', checkFormValidity);
+            calendarType.addEventListener('change', checkFormValidity);
+            
+            birthDateInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                checkFormValidity();
+            });
+            
+            // ============ 폼 제출 ============
+            document.getElementById('sajuForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!checkFormValidity()) {
+                    alert('모든 필드를 입력해주세요.');
+                    return;
+                }
+                
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = '<span class="animate-pulse">✨ 운명을 분석하고 있습니다...</span>';
+                
+                try {
+                    const formattedDate = `${birthDateInput.value.substring(0,4)}-${birthDateInput.value.substring(4,6)}-${birthDateInput.value.substring(6,8)}`;
+                    const timeForCalc = (birthTime.value === 'unknown' || birthTime.value === '') ? '00:00' : birthTime.value;
+                    
+                    const sajuData = calculateSajuPalgja(formattedDate, timeForCalc, calendarType.value);
+                    const astrologyData = calculateAstrology(formattedDate, timeForCalc, location.value);
+                    
+                    const rawData = {
+                        userInfo: {
+                            name: userName.value.trim(),
+                            birthDate: formattedDate,
+                            birthTime: birthTime.value === 'unknown' ? '' : birthTime.value,
+                            location: location.value.trim(),
+                            calendarType: calendarType.value,
+                            gender: genderInput.value
+                        },
+                        saju: sajuData,
+                        astrology: astrologyData
+                    };
+                    
+                    const response = await fetch('/api/consultation', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ rawData })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('resultArea').style.display = 'block';
+                        await addAIMessage(result.consultation || result.message || '분석이 완료되었습니다.');
+                        window.globalRawData = rawData;
+                        document.getElementById('additional-question-section').style.display = 'block';
+                        document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert('분석 실패: ' + (result.error || '알 수 없는 오류'));
+                    }
+                    
+                } catch (error) {
+                    console.error('API 오류:', error);
+                    alert('서버 연결에 실패했습니다: ' + error.message);
+                } finally {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = '✨ 운명 분석 시작';
+                    checkFormValidity();
+                }
+            });
+            
+            // ============ 채팅 기능 ============
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            async function sendChat() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                chatInput.value = '';
+                addUserMessage(message);
+                sendButton.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userMessage: message,
+                            rawData: window.globalRawData
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    await addAIMessage(result.success ? result.answer : '답변 생성 중 오류가 발생했습니다.');
+                } catch (error) {
+                    await addAIMessage('서버 연결에 실패했습니다.');
+                } finally {
+                    sendButton.disabled = false;
+                }
+            }
+            
+            sendButton.addEventListener('click', sendChat);
+            chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+            
+            function addUserMessage(text) {
+                const chatMessages = document.getElementById('chatMessages');
+                const div = document.createElement('div');
+                div.className = 'user-message p-4 rounded-xl text-white/90 ml-8';
+                div.textContent = text;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            async function addAIMessage(text) {
+                const chatMessages = document.getElementById('chatMessages');
+                const div = document.createElement('div');
+                div.className = 'ai-message p-4 rounded-xl text-white/90 mr-8 whitespace-pre-wrap leading-relaxed';
+                chatMessages.appendChild(div);
+                
+                for (let i = 0; i < text.length; i++) {
+                    div.textContent += text[i];
+                    if (i % 5 === 0) chatMessages.scrollTop = chatMessages.scrollHeight;
+                    await new Promise(r => setTimeout(r, 12));
+                }
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // ============ 추가 질문 ============
+            const userQuestion = document.getElementById('userQuestion');
+            const charCount = document.getElementById('charCount');
+            const sendQuestionBtn = document.getElementById('sendQuestionBtn');
+            
+            userQuestion.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+                charCount.style.color = this.value.length >= 180 ? '#f87171' : '';
+            });
+            
+            sendQuestionBtn.addEventListener('click', async function() {
+                const question = userQuestion.value.trim();
+                if (!question) {
+                    alert('질문을 입력해주세요.');
+                    return;
+                }
+                
+                this.disabled = true;
+                this.innerHTML = '<span class="animate-pulse">답변 생성 중...</span>';
+                
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userMessage: question,
+                            rawData: window.globalRawData
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const answerBox = document.createElement('div');
+                        answerBox.className = 'mt-4 p-4 rounded-xl bg-white/5 border border-white/10';
+                        answerBox.innerHTML = `
+                            <p class="text-white/60 text-sm mb-2">📝 ${question}</p>
+                            <p class="text-white/90 leading-relaxed">💬 ${result.answer}</p>
+                        `;
+                        document.getElementById('additional-question-section').appendChild(answerBox);
+                        userQuestion.value = '';
+                        charCount.textContent = '0';
+                    }
+                } catch (error) {
+                    alert('서버 연결에 실패했습니다.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '질문 전송하기';
+                }
+            });
+            
+            checkFormValidity();
+        });
+    </script>
 </body>
 </html>

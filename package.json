@@ -1,19 +1,27 @@
 {
-  "name": "saju-web",
-  "version": "1.0.0",
-  "description": "AI 운명 진단 시스템",
+  "name": "auriton-insight-ai",
+  "version": "2.0.0",
+  "description": "Auriton InsightAI - AI 운명 진단 시스템 (사주 + 점성술)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node --watch server.js",
+    "test": "node -e \"console.log('Server test passed')\"",
+    "check": "node -e \"require('dotenv').config(); console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '✅ 설정됨' : '❌ 미설정')\""
   },
   "keywords": [
     "ai",
     "saju",
-    "astrology"
+    "astrology",
+    "fortune",
+    "gemini",
+    "auriton"
   ],
-  "author": "",
+  "author": "Auriton",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",

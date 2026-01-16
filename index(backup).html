@@ -146,80 +146,119 @@
         </div>
     </div>
 
-    <div id="ai-chat-section" class="mt-6 border-t pt-4">
-    <label class="block text-sm font-medium text-gray-700 mb-2">
+    <script>
+// 1. 초기 분석이 완료된 후 이 함수를 실행하여 질문창을 보여줍니다.
+function showAdditionalQuestion() {
+    const section = document.getElementById('additional-question-section');
+    if (section) {
+        section.style.display = 'block'; // 숨겨진 섹션을 나타냄
+        section.scrollIntoView({ behavior: 'smooth' }); // 자연스럽게 아래로 스크롤
+    }
+}
+
+// 2. 실시간 글자 수 카운터 로직
+const questionInput = document.getElementById('userQuestion');
+const charCountDisplay = document.getElementById('charCount');
+
+if (questionInput && charCountDisplay) {
+    questionInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCountDisplay.innerText = length;
+        
+        // 180자 이상 시 시각적 경고
+        if (length >= 180) {
+            charCountDisplay.className = 'text-xs font-bold text-red-500';
+        } else {
+            charCountDisplay.className = 'text-xs font-semibold text-gray-400';
+        }
+    });
+}
+
+// 3. 기존 분석 성공 시점에 showAdditionalQuestion()을 호출하도록 연결하세요.
+// 예: result.success일 때 UI를 그린 후 showAdditionalQuestion() 실행
+</script>
+
+<div id="additional-question-section" class="mt-8 border-t pt-6" style="display: none;">
+    <label class="block text-gray-700 font-bold mb-3 ml-1">
         AI 상담사에게 추가 질문하기 (200자 제한)
     </label>
     
     <div class="relative">
         <textarea 
             id="userQuestion" 
-            rows="3" 
             maxlength="200"
-            class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-            placeholder="예: 1979년생 동료와 함께 일하면 어떨까요?"
+            class="w-full p-4 pb-12 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none resize-none transition-all shadow-sm"
+            placeholder="상담 내용 중 궁금한 점을 물어보세요."
+            rows="3"
         ></textarea>
         
-        <div class="absolute bottom-2 right-3 text-xs text-gray-400">
-            <span id="charCount">0</span>/200
+        <div class="absolute bottom-4 right-5 flex items-center bg-white/90 px-2 py-0.5 rounded-lg pointer-events-none">
+            <span id="charCount" class="text-xs font-semibold text-gray-400">0</span>
+            <span class="text-xs text-gray-300">/200</span>
         </div>
     </div>
 
-    <button 
-        id="sendQuestionBtn" 
-        class="w-full mt-3 bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition"
-    >
+    <button id="sendQuestionBtn" class="w-full mt-4 bg-blue-900 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">
         질문 전송하기
     </button>
 </div>
-    
-    <!-- lunar-javascript 라이브러리 (음력 계산용) -->
-    <script src="https://cdn.jsdelivr.net/gh/6tail/lunar-javascript@latest/lunar.min.js"></script>
-    <!-- 대체: GitHub Gist 버전 -->
-    <script>
-        // lunar-javascript가 로드되지 않을 경우를 대비한 fallback
-        if (typeof Lunar === 'undefined') {
-            console.warn('lunar-javascript가 로드되지 않았습니다. 대체 방법을 사용합니다.');
-        }
-    </script>
-    <script src="script.js"></script>
-    // 200자 카운터 및 입력 제어 로직
+
+<script src="https://cdn.jsdelivr.net/gh/6tail/lunar-javascript@latest/lunar.min.js"></script>
+<script src="script.js"></script>
+
+<script>
+// ✅ 질문창 노출 함수
+function showAdditionalQuestion() {
+    const section = document.getElementById('additional-question-section');
+    if (section) {
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth' });
+        console.log("🚀 추가 질문창 활성화 완료");
+    }
+}
+
+// ✅ 200자 실시간 카운터 로직
 const questionInput = document.getElementById('userQuestion');
 const charCountDisplay = document.getElementById('charCount');
 
-questionInput.addEventListener('input', function() {
-    const length = this.value.length;
-    charCountDisplay.innerText = length;
+if (questionInput && charCountDisplay) {
+    questionInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCountDisplay.innerText = length;
 
-    // 시각적 피드백 (180자 넘으면 강조)
-    if (length >= 180) {
-        charCountDisplay.classList.add('text-red-500', 'font-bold');
-    } else {
-        charCountDisplay.classList.remove('text-red-500', 'font-bold');
-    }
-});
+        if (length >= 180) {
+            charCountDisplay.classList.add('text-red-500', 'font-bold');
+        } else {
+            charCountDisplay.classList.remove('text-red-500', 'font-bold');
+        }
+    });
+}
 
-// ✅ 버튼 클릭 이벤트
+// ✅ 질문 전송 버튼 이벤트
 document.getElementById('sendQuestionBtn').addEventListener('click', async () => {
-    const questionInput = document.getElementById('userQuestion');
     const message = questionInput.value.trim();
-    
     if (!message) return alert("질문을 입력해주세요.");
     
-    // 💡 11번 줄 주석을 해제했습니다!
-    sendChatMessage(message); 
+    const btn = document.getElementById('sendQuestionBtn');
+    btn.disabled = true; // 중복 클릭 방지
+    
+    await sendChatMessage(message);
+    
+    btn.disabled = false;
 });
 
-// ✅ 채팅 전송 함수
+// ✅ 추가 질문 전송 및 답변 처리 함수
 async function sendChatMessage(userMessage) {
-    try {
-        const chatSection = document.getElementById('ai-chat-section');
-        const originalContent = chatSection.innerHTML;
-        
-        // 1. 로딩 상태 표시
-        chatSection.innerHTML = "<p class='text-blue-600 animate-pulse'>전문 상담사가 Simon님의 질문을 분석 중입니다...</p>";
+    const section = document.getElementById('additional-question-section');
+    const questionContainer = section.querySelector('.relative'); // 입력창 영역 보존
+    
+    // 로딩 표시 추가 (기존 입력창 아래에 생성)
+    const loadingMsg = document.createElement('p');
+    loadingMsg.className = 'text-blue-600 animate-pulse font-bold p-4 text-center';
+    loadingMsg.innerText = '✨ Simon님의 사주를 바탕으로 답변을 분석 중입니다...';
+    section.appendChild(loadingMsg);
 
-        // 2. API 호출
+    try {
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -230,27 +269,28 @@ async function sendChatMessage(userMessage) {
         });
 
         const result = await response.json();
+        loadingMsg.remove(); // 로딩 제거
 
         if (result.success) {
-            // 3. 🎉 답변 화면 출력
-            chatSection.innerHTML = originalContent; // 로딩 메시지 제거
+            // 답변 박스 생성
             const answerBox = document.createElement('div');
-            // Simon님이 사진에 넣으신 세련된 스타일 그대로입니다.
-            answerBox.className = "mt-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500 shadow-sm";
+            answerBox.className = "mt-4 p-5 bg-blue-50 rounded-2xl border-l-4 border-blue-500 shadow-sm";
             answerBox.innerHTML = `
-                <p class="font-bold text-gray-800 mb-2">Q: ${userMessage}</p>
-                <p class="text-gray-700 leading-relaxed"><strong>A:</strong> ${result.answer}</p>
+                <p class="font-bold text-gray-800 mb-2 text-sm">나의 질문: ${userMessage}</p>
+                <p class="text-gray-700 leading-relaxed"><span class="font-bold text-blue-600">답변:</span> ${result.answer}</p>
             `;
-            chatSection.appendChild(answerBox);
+            section.appendChild(answerBox);
             
-            // 4. 입력창 및 카운터 초기화
-            document.getElementById('userQuestion').value = '';
-            document.getElementById('charCount').innerText = '0';
+            // 입력창 초기화
+            questionInput.value = '';
+            charCountDisplay.innerText = '0';
         }
     } catch (error) {
         console.error("통신 오류:", error);
+        loadingMsg.remove();
         alert("서버 연결에 실패했습니다.");
     }
 }
+</script>
 </body>
 </html>
