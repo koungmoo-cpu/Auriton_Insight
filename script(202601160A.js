@@ -90,7 +90,7 @@ function initializeDateSelectors() {
         birthYear.appendChild(option);
     }
     // #region agent log
-   // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initializeDateSelectors',message:'연도 옵션 생성 완료',data:{yearCount:birthYear.options.length-1},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initializeDateSelectors',message:'연도 옵션 생성 완료',data:{yearCount:birthYear.options.length-1},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
     // #endregion
     
     // 월 옵션 생성 (1월 ~ 12월)
@@ -101,7 +101,7 @@ function initializeDateSelectors() {
         birthMonth.appendChild(option);
     }
     // #region agent log
-   // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initializeDateSelectors',message:'월 옵션 생성 완료',data:{monthCount:birthMonth.options.length-1},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:initializeDateSelectors',message:'월 옵션 생성 완료',data:{monthCount:birthMonth.options.length-1},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
     // #endregion
     
     // 일 옵션은 월과 연도에 따라 동적으로 업데이트
@@ -126,7 +126,7 @@ function initializeDateSelectors() {
                 birthDay.appendChild(option);
             }
             // #region agent log
-           // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:updateDayOptions',message:'일 옵션 생성 완료',data:{lastDay,lastDayCount:lastDay,year,month},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:updateDayOptions',message:'일 옵션 생성 완료',data:{lastDay,lastDayCount:lastDay,year,month},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug3',hypothesisId:'H5'})}).catch(()=>{});
             // #endregion
         }
         
@@ -223,7 +223,7 @@ function attachSubmitHandler() {
                 astrology: astrologyData
             };
 
-            const res = await fetch('/api/consultation', {
+            const res = await fetch('http://localhost:3000/api/consultation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rawData })
@@ -233,29 +233,9 @@ function attachSubmitHandler() {
                 const txt = await res.text();
                 throw new Error(txt || `HTTP ${res.status}`);
             }
-            // 1. 서버 응답을 JSON으로 변환
             const data = await res.json();
-
-            // ✅ 기존 3줄을 삭제하고 아래 내용을 입력하세요
-            if (data.success) {
-                // (1) 결과 영역을 화면에 표시
-                document.getElementById('resultArea').style.display = 'block';
-                
-                // (2) AI의 첫 번째 분석 답변을 타이핑 효과로 출력
-                await addAIMessage(data.message || data.consultation || '분석이 완료되었습니다.');
-
-                // (3) 💡 [핵심] 추가 질문을 위해 분석 원본 데이터를 공용 저장소에 보관
-                // 161번 줄에서 생성된 rawData 변수를 전역(window)에 저장합니다.
-                window.globalRawData = rawData; 
-                console.log("관제 알림: 추가 질문용 데이터 저장 완료");
-
-                // (4) 💡 숨겨져 있던 200자 추가 질문 섹션을 화면에 띄움
-                if (typeof showAdditionalQuestion === 'function') {
-                    showAdditionalQuestion();
-                }
-            } else {
-                alert("분석 실패: " + (data.error || "알 수 없는 에러"));
-            }
+            document.getElementById('resultArea').style.display = 'block';
+            await addAIMessage(data.message || '분석이 완료되었습니다.');
         } catch (err) {
             alert("서버 연결 실패: " + (err?.message || err));
         }
@@ -313,7 +293,7 @@ function initializeValidation() {
     function handleNameInput(e) {
         let value = e.target.value;
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:userNameInput',message:'이름 입력 변경',data:{raw:value,length:value?.length,isComposing},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug2',hypothesisId:'H4'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:userNameInput',message:'이름 입력 변경',data:{raw:value,length:value?.length,isComposing},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug2',hypothesisId:'H4'})}).catch(()=>{});
         // #endregion
         
         // 최대 길이 제한 (100자)
@@ -714,14 +694,14 @@ async function processAnalysis() {
     // 시간: 선택값 그대로 사용(unknown이면 빈 값 처리)
     const formattedTime = birthTimeVal === 'unknown' ? '' : birthTimeVal;
     // #region agent log
-   // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:581',message:'날짜/시간 포맷팅 완료',data:{formattedDate,formattedTime,birthDateRaw,birthTimeVal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:581',message:'날짜/시간 포맷팅 완료',data:{formattedDate,formattedTime,birthDateRaw,birthTimeVal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
     // #endregion
     
     // userName 변수 수집 및 로깅
     const userNameInput = document.getElementById('userName');
     const userName = userNameInput ? userNameInput.value.trim() : '';
     // #region agent log
-   // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:586',message:'userName 변수 수집',data:{userName,userNameLength:userName.length,hasInput:!!userNameInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:586',message:'userName 변수 수집',data:{userName,userNameLength:userName.length,hasInput:!!userNameInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
     // #endregion
     
     const formData = {
@@ -733,7 +713,7 @@ async function processAnalysis() {
         gender: gender
     };
     // #region agent log
-   // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:593',message:'formData 생성 완료',data:{name:formData.name,nameLength:formData.name.length,hasDate:!!formData.date,hasTime:!!formData.time},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:593',message:'formData 생성 완료',data:{name:formData.name,nameLength:formData.name.length,hasDate:!!formData.date,hasTime:!!formData.time},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
     // #endregion
 
     // 최종 유효성 검사
@@ -770,10 +750,10 @@ async function processAnalysis() {
             astrology: astrologyData
         };
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:rawDataCheck',message:'rawData 필드 검증',data:{name:rawData?.userInfo?.name,birthDate:rawData?.userInfo?.birthDate,birthTime:rawData?.userInfo?.birthTime,calendarType:rawData?.userInfo?.calendarType,location:rawData?.userInfo?.location},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug1',hypothesisId:'H1'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:rawDataCheck',message:'rawData 필드 검증',data:{name:rawData?.userInfo?.name,birthDate:rawData?.userInfo?.birthDate,birthTime:rawData?.userInfo?.birthTime,calendarType:rawData?.userInfo?.calendarType,location:rawData?.userInfo?.location},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug1',hypothesisId:'H1'})}).catch(()=>{});
         // #endregion
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:622',message:'Raw Data 생성 완료',data:{birthDate:rawData.userInfo.birthDate,birthTime:rawData.userInfo.birthTime,calendarType:rawData.userInfo.calendarType},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:622',message:'Raw Data 생성 완료',data:{birthDate:rawData.userInfo.birthDate,birthTime:rawData.userInfo.birthTime,calendarType:rawData.userInfo.calendarType},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
         // #endregion
 
         // 4단계: 결과 화면에 출력
@@ -803,7 +783,7 @@ async function processAnalysis() {
         globalRawData = rawData;
         chatHistory = []; // 새로운 분석 시작 시 채팅 기록 초기화
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:globalRawDataSet',message:'globalRawData 저장',data:{hasRawData:!!globalRawData,name:globalRawData?.userInfo?.name,birthTime:globalRawData?.userInfo?.birthTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug1',hypothesisId:'H1'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:globalRawDataSet',message:'globalRawData 저장',data:{hasRawData:!!globalRawData,name:globalRawData?.userInfo?.name,birthTime:globalRawData?.userInfo?.birthTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run-debug1',hypothesisId:'H1'})}).catch(()=>{});
         // #endregion
 
         // 5단계: AI 연동 (핵심)
@@ -828,10 +808,10 @@ async function getAIInterpretation(saju, astrology, rawData) {
     
     try {
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:673',message:'서버 API 호출 시작',data:{birthDate:rawData?.userInfo?.birthDate,birthTime:rawData?.userInfo?.birthTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:673',message:'서버 API 호출 시작',data:{birthDate:rawData?.userInfo?.birthDate,birthTime:rawData?.userInfo?.birthTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
         // #endregion
         // 서버 API 호출
-        const response = await fetch('/api/consultation', {
+        const response = await fetch('http://localhost:3000/api/consultation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -839,7 +819,7 @@ async function getAIInterpretation(saju, astrology, rawData) {
             body: JSON.stringify({ rawData })
         });
         // #region agent log
-       // fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:682',message:'서버 응답 수신',data:{status:response?.status,ok:response?.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/3c84f3af-0d8e-47a2-aa1b-e521e7c0cdc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:682',message:'서버 응답 수신',data:{status:response?.status,ok:response?.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
         // #endregion
 
         if (!response.ok) {
@@ -926,7 +906,7 @@ async function sendUserMessage() {
     
     try {
         // 서버 API 호출
-        const response = await fetch('/api/chat', {
+        const response = await fetch('http://localhost:3000/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
