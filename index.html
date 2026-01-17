@@ -169,6 +169,49 @@
             background: rgba(255, 255, 255, 0.1);
         }
         
+        .save-info-container {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .save-info-check {
+            transition: all 0.2s ease;
+        }
+        
+        .save-info-check:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .save-info-check input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-color: transparent;
+        }
+        
+        .answer-box {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .answer-question {
+            color: #60a5fa;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .answer-content {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .answers-area {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
@@ -258,8 +301,34 @@
                 <span class="error-message" id="calendarTypeError"></span>
             </div>
             
+            <!-- 개인정보 동의 섹션 -->
+            <div class="space-y-3 mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                <div class="flex items-start gap-3">
+                    <input type="checkbox" id="privacyConsent" class="mt-1 w-4 h-4 text-blue-600 bg-transparent border-white/30 rounded focus:ring-blue-500 focus:ring-2">
+                    <label for="privacyConsent" class="text-white/90 text-sm cursor-pointer">
+                        <span class="font-medium text-blue-300">개인정보 수집 및 이용에 동의합니다</span> <span class="required">*</span>
+                    </label>
+                </div>
+                <div class="ml-7 text-xs text-white/60 leading-relaxed">
+                    <p>📌 <strong>개인정보 처리방침 안내</strong></p>
+                    <p>• 입력하신 정보는 저장되지 않으며 1회성 분석 후 즉시 파기됩니다</p>
+                    <p>• 수집목적: AI 사주 운세 분석 서비스 제공</p>
+                    <p>• 수집항목: 성명, 생년월일, 출생지역, 성별</p>
+                    <p>• 보유기간: 분석 완료 즉시 삭제</p>
+                </div>
+                <span class="error-message" id="privacyConsentError"></span>
+            </div>
+            
+            <!-- 정보 저장 옵션 -->
+            <div class="save-info-container mt-4 p-3 bg-blue-500/10 rounded-xl">
+                <label class="save-info-check flex items-center gap-2 cursor-pointer text-sm text-white/70">
+                    <input type="checkbox" id="saveInfoCheck" class="w-4 h-4 text-blue-600 bg-transparent border-white/30 rounded focus:ring-blue-500 focus:ring-2">
+                    <span>💾 내 정보 저장하기 (이 기기에만 저장됩니다)</span>
+                </label>
+            </div>
+            
             <!-- 분석 버튼 -->
-            <button type="submit" id="analyzeBtn" class="analyze-btn w-full text-white py-4 rounded-2xl font-bold text-lg shadow-lg mt-4" disabled>
+            <button type="submit" id="analyzeBtn" class="analyze-btn w-full text-white py-4 rounded-2xl font-bold text-lg shadow-lg mt-6" disabled>
                 ✨ 운명 분석 시작
             </button>
         </form>
@@ -275,6 +344,10 @@
         <!-- 추가 질문 섹션 -->
         <div id="additional-question-section" class="result-container rounded-3xl mt-6 p-6" style="display: none;">
             <label class="label-text block mb-3 font-bold">💬 AI 상담사에게 추가 질문하기</label>
+            
+            <!-- 답변 영역 (최신 답변이 질문창 바로 위) -->
+            <div id="answersArea" class="answers-area mb-4 space-y-4"></div>
+            
             <div class="relative">
                 <textarea id="userQuestion" maxlength="200" class="input-field w-full p-4 pb-10 rounded-2xl resize-none" placeholder="상담 내용 중 궁금한 점을 물어보세요." rows="3"></textarea>
                 <div class="absolute bottom-3 right-4 text-xs text-white/50">
@@ -298,6 +371,114 @@
     window.globalRawData = null;
     const CHEONGAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
     const JIJI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+
+    // =====================================================
+    // 전역 함수들 (HTML에서 직접 호출 가능)
+    // =====================================================
+    
+    // 성별 선택 함수 (전역)
+    function selectGender(value) {
+        const genderMale = document.getElementById('genderMale');
+        const genderFemale = document.getElementById('genderFemale');
+        const genderInput = document.getElementById('gender');
+        
+        // 버튼 스타일 업데이트
+        if (genderMale && genderFemale && genderInput) {
+            genderMale.classList.remove('selected');
+            genderFemale.classList.remove('selected');
+            
+            if (value === 'male') {
+                genderMale.classList.add('selected');
+            } else if (value === 'female') {
+                genderFemale.classList.add('selected');
+            }
+            
+            genderInput.value = value;
+            
+            // 폼 유효성 검사 호출
+            if (typeof checkFormValidity === 'function') {
+                checkFormValidity();
+            }
+        }
+    }
+    
+    // 답변 추가 함수 (전역)
+    function addAnswer(question, answer) {
+        const answersArea = document.getElementById('answersArea');
+        
+        if (!answersArea) return;
+        
+        const answerBox = document.createElement('div');
+        answerBox.className = 'answer-box';
+        answerBox.innerHTML = `
+            <div class="answer-question">🗨️ ${question}</div>
+            <div class="answer-content">💬 ${answer}</div>
+        `;
+        
+        // 맨 아래에 추가 (최신이 아래로 = 질문창 바로 위)
+        answersArea.appendChild(answerBox);
+        
+        // 2개 초과 시 가장 오래된 것(맨 위) 삭제
+        const allAnswers = answersArea.querySelectorAll('.answer-box');
+        if (allAnswers.length > 2) {
+            allAnswers[0].remove();
+        }
+        
+        // 새 답변으로 부드럽게 스크롤
+        answerBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // 폼 유효성 검사 함수 (전역)
+    function checkFormValidity() {
+        const userNameEl = document.getElementById('userName');
+        const birthDateInputEl = document.getElementById('birthDateInput');
+        const birthTimeSelectEl = document.getElementById('birthTime');
+        const locationEl = document.getElementById('location');
+        const calendarTypeEl = document.getElementById('calendarType');
+        const genderEl = document.getElementById('gender');
+        const privacyConsentEl = document.getElementById('privacyConsent');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+
+        const userName = userNameEl ? userNameEl.value.trim() : '';
+        const birthDateVal = birthDateInputEl ? birthDateInputEl.value.trim() : '';
+        const birthTimeVal = birthTimeSelectEl ? birthTimeSelectEl.value : '';
+        const locationVal = locationEl ? locationEl.value.trim() : '';
+        const calendarTypeVal = calendarTypeEl ? calendarTypeEl.value : '';
+        const genderVal = genderEl ? genderEl.value : '';
+        const privacyConsent = privacyConsentEl ? privacyConsentEl.checked : false;
+
+        // 모든 필드가 입력되었는지 확인
+        const isBirthDateValid = birthDateVal && /^\d{8}$/.test(birthDateVal);
+        const isBirthTimeValid = birthTimeVal !== '';
+        
+        const isValid = userName && 
+                        isBirthDateValid && 
+                        isBirthTimeValid && 
+                        locationVal && 
+                        calendarTypeVal &&
+                        genderVal &&
+                        privacyConsent; // 개인정보 동의 체크 추가
+
+        // 버튼 활성화/비활성화
+        if (analyzeBtn) {
+            analyzeBtn.disabled = !isValid;
+        }
+        
+        // 개인정보 동의 에러 메시지 처리
+        const privacyError = document.getElementById('privacyConsentError');
+        if (privacyError) {
+            if (privacyConsent) {
+                privacyError.textContent = '';
+            }
+        }
+        
+        return isValid;
+    }
+
+    // window 객체에 전역 함수 할당
+    window.selectGender = selectGender;
+    window.addAnswer = addAnswer;
+    window.checkFormValidity = checkFormValidity;
 
     // =====================================================
     // 사주 팔자 계산 함수
@@ -429,6 +610,71 @@
     }
 
     // =====================================================
+    // 로컬 저장 기능
+    // =====================================================
+    function loadSavedInfo() {
+        const savedInfo = localStorage.getItem('auritonUserInfo');
+        const saveCheck = document.getElementById('saveInfoCheck');
+        
+        if (savedInfo) {
+            try {
+                const info = JSON.parse(savedInfo);
+                
+                // 저장된 정보 불러오기
+                const userName = document.getElementById('userName');
+                const location = document.getElementById('location');
+                const birthDateInput = document.getElementById('birthDateInput');
+                const birthTime = document.getElementById('birthTime');
+                const calendarType = document.getElementById('calendarType');
+                
+                if (userName && info.userName) userName.value = info.userName;
+                if (location && info.location) location.value = info.location;
+                if (birthDateInput && info.birthDateInput) birthDateInput.value = info.birthDateInput;
+                if (birthTime && info.birthTime) birthTime.value = info.birthTime;
+                if (calendarType && info.calendarType) calendarType.value = info.calendarType;
+                
+                // 성별 설정
+                if (info.gender) {
+                    selectGender(info.gender);
+                }
+                
+                if (saveCheck) saveCheck.checked = true;
+                checkFormValidity();
+            } catch (error) {
+                console.error('저장된 정보 불러오기 실패:', error);
+                localStorage.removeItem('auritonUserInfo');
+            }
+        }
+    }
+    
+    function saveUserInfo() {
+        const saveCheck = document.getElementById('saveInfoCheck');
+        if (saveCheck && saveCheck.checked) {
+            const userName = document.getElementById('userName');
+            const location = document.getElementById('location');
+            const birthDateInput = document.getElementById('birthDateInput');
+            const birthTime = document.getElementById('birthTime');
+            const calendarType = document.getElementById('calendarType');
+            const genderInput = document.getElementById('gender');
+            
+            const userInfo = {
+                userName: userName ? userName.value.trim() : '',
+                location: location ? location.value.trim() : '',
+                gender: genderInput ? genderInput.value : '',
+                birthDateInput: birthDateInput ? birthDateInput.value.trim() : '',
+                birthTime: birthTime ? birthTime.value : '',
+                calendarType: calendarType ? calendarType.value : ''
+            };
+            
+            try {
+                localStorage.setItem('auritonUserInfo', JSON.stringify(userInfo));
+            } catch (error) {
+                console.error('정보 저장 실패:', error);
+            }
+        }
+    }
+    
+    // =====================================================
     // DOM 로드 후 초기화
     // =====================================================
     document.addEventListener('DOMContentLoaded', function() {
@@ -447,36 +693,30 @@
         const userQuestion = document.getElementById('userQuestion');
         const charCount = document.getElementById('charCount');
         const sendQuestionBtn = document.getElementById('sendQuestionBtn');
+        const saveInfoCheck = document.getElementById('saveInfoCheck');
         
         // ============ 성별 선택 ============
-        function selectGender(value) {
-            genderMale.classList.remove('selected');
-            genderFemale.classList.remove('selected');
-            if (value === 'male') {
-                genderMale.classList.add('selected');
-            } else {
-                genderFemale.classList.add('selected');
-            }
-            genderInput.value = value;
-            checkFormValidity();
-        }
+        // 이미 전역에서 정의된 selectGender 함수 사용
         
         genderMale.addEventListener('click', () => selectGender('male'));
         genderFemale.addEventListener('click', () => selectGender('female'));
         
-        // ============ 폼 유효성 검사 ============
-        function checkFormValidity() {
-            const isValid = 
-                userName.value.trim().length > 0 &&
-                location.value.trim().length > 0 &&
-                (genderInput.value === 'male' || genderInput.value === 'female') &&
-                /^\d{8}$/.test(birthDateInput.value.trim()) &&
-                birthTime.value !== '' &&
-                calendarType.value !== '';
-            
-            analyzeBtn.disabled = !isValid;
-            return isValid;
+        // ============ 정보 저장 기능 ============
+        // 저장된 정보 불러오기
+        loadSavedInfo();
+        
+        // 저장 체크박스 이벤트
+        if (saveInfoCheck) {
+            saveInfoCheck.addEventListener('change', function() {
+                if (!this.checked) {
+                    // 체크 해제 시 저장된 정보 삭제
+                    localStorage.removeItem('auritonUserInfo');
+                }
+            });
         }
+        
+        // ============ 폼 유효성 검사 ============
+        // 이미 전역에서 정의된 checkFormValidity 함수 사용
         
         userName.addEventListener('input', checkFormValidity);
         location.addEventListener('input', checkFormValidity);
@@ -487,13 +727,23 @@
             checkFormValidity();
         });
         
+        // 개인정보 동의 체크박스 이벤트
+        const privacyConsent = document.getElementById('privacyConsent');
+        privacyConsent.addEventListener('change', checkFormValidity);
+        
         // ============ 폼 제출 ============
         document.getElementById('sajuForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             console.log('📤 폼 제출 시작');
             
+            const privacyConsent = document.getElementById('privacyConsent');
+            
             if (!checkFormValidity()) {
-                alert('모든 필드를 입력해주세요.');
+                if (!privacyConsent.checked) {
+                    const privacyError = document.getElementById('privacyConsentError');
+                    privacyError.textContent = '개인정보 수집 및 이용에 동의해주세요.';
+                }
+                alert('모든 필수 항목을 입력하고 개인정보 처리방침에 동의해주세요.');
                 return;
             }
             
@@ -537,10 +787,14 @@
                 console.log('✅ API 응답:', result);
                 
                 if (result.success) {
+                    // 정보 저장 (체크되어 있는 경우)
+                    saveUserInfo();
+                    
                     document.getElementById('resultArea').style.display = 'block';
                     await addAIMessage(result.consultation || result.message || '분석이 완료되었습니다.');
                     window.globalRawData = rawData;
                     document.getElementById('additional-question-section').style.display = 'block';
+                    
                     document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth' });
                 } else {
                     alert('분석 실패: ' + (result.error || '알 수 없는 오류'));
@@ -601,13 +855,8 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    const answerBox = document.createElement('div');
-                    answerBox.className = 'mt-4 p-4 rounded-xl bg-white/5 border border-white/10';
-                    answerBox.innerHTML = `
-                        <p class="text-white/60 text-sm mb-2">📝 ${question}</p>
-                        <p class="text-white/90 leading-relaxed">💬 ${result.answer}</p>
-                    `;
-                    document.getElementById('additional-question-section').appendChild(answerBox);
+                    addAnswer(question, result.answer);
+                    
                     userQuestion.value = '';
                     charCount.textContent = '0';
                 }
@@ -618,6 +867,9 @@
                 this.innerHTML = '질문 전송하기';
             }
         });
+        
+        // ============ 답변 관리 기능 ============
+        // 이미 전역에서 정의된 addAnswer 함수 사용
         
         // 초기 유효성 검사
         checkFormValidity();

@@ -1,6 +1,8 @@
-// script.js
-console.log("관제 알림: 자바스크립트 엔진 정상 로드 완료");
-console.log("관제 알림: 모든 엔진이 정상 로드되었습니다.");
+// script.js - Auriton InsightAI 클라이언트 로직
+if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+    console.log("관제 알림: 자바스크립트 엔진 정상 로드 완료");
+    console.log("관제 알림: 모든 엔진이 정상 로드되었습니다.");
+}
 
 // 천간지지 배열 정의
 const CHEONGAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계']; // 10천간
@@ -67,7 +69,9 @@ function selectGenderCheckbox(value) {
 
 // DOM 로드 완료 후 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM 로드 완료, 초기화 시작");
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+        console.log("DOM 로드 완료, 초기화 시작");
+    }
     initializeTimeSelectors();
     initializeValidation();
     initializeChat();
@@ -165,7 +169,9 @@ function initializeTimeSelectors() {
     const birthTimeSelect = document.getElementById('birthTime');
     if (!birthTimeSelect) return;
     birthTimeSelect.addEventListener('change', function() {
-        console.log("관제 알림: 선택된 시진 - ", birthTimeSelect.value || '시간 모름');
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.log("관제 알림: 선택된 시진 - ", birthTimeSelect.value || '시간 모름');
+        }
         validateForm();
     });
 }
@@ -197,6 +203,17 @@ function attachSubmitHandler() {
             alert('모든 필드를 입력/선택해주세요.');
             return;
         }
+        // 개인정보 동의 확인 추가
+        const privacyConsent = document.getElementById('privacyConsent');
+        if (!privacyConsent?.checked) {
+            const privacyError = document.getElementById('privacyConsentError');
+            if (privacyError) {
+                privacyError.textContent = '개인정보 수집 및 이용에 동의해주세요.';
+            }
+            alert('모든 필수 항목을 입력하고 개인정보 처리방침에 동의해주세요.');
+            return;
+        }
+        
         const pattern = /^\d{8}$/;
         if (!pattern.test(birthDateRaw)) {
             alert('생년월일은 8자리로 입력해주세요. 예: 19900101');
@@ -229,7 +246,9 @@ function attachSubmitHandler() {
                 astrology: astrologyData
             };
 
-            console.log("API 호출 시작: /api/consultation");
+            if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+                console.log("API 호출 시작: /api/consultation");
+            }
             const res = await fetch('/api/consultation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -243,7 +262,9 @@ function attachSubmitHandler() {
             
             // 서버 응답을 JSON으로 변환
             const data = await res.json();
-            console.log("API 응답 수신:", data);
+            if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+                console.log("API 응답 수신:", data);
+            }
 
             if (data.success) {
                 // (1) 결과 영역을 화면에 표시
@@ -257,7 +278,9 @@ function attachSubmitHandler() {
 
                 // (3) 추가 질문을 위해 분석 원본 데이터를 전역에 저장
                 window.globalRawData = rawData; 
-                console.log("관제 알림: 추가 질문용 데이터 저장 완료", window.globalRawData);
+                if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+                    console.log("관제 알림: 추가 질문용 데이터 저장 완료", window.globalRawData);
+                }
 
                 // (4) 숨겨져 있던 200자 추가 질문 섹션을 화면에 띄움
                 if (typeof showAdditionalQuestion === 'function') {
@@ -267,7 +290,9 @@ function attachSubmitHandler() {
                 alert("분석 실패: " + (data.error || "알 수 없는 에러"));
             }
         } catch (err) {
-            console.error("서버 연결 실패:", err);
+            if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+                console.error("서버 연결 실패:", err);
+            }
             alert("서버 연결 실패: " + (err?.message || err));
         } finally {
             // 버튼 복원
@@ -307,6 +332,17 @@ function initializeValidation() {
     const birthTimeSelect = document.getElementById('birthTime');
     const location = document.getElementById('location');
     const calendarType = document.getElementById('calendarType');
+    const privacyConsent = document.getElementById('privacyConsent');
+
+    // 개인정보 동의 체크박스 이벤트 리스너 추가
+    if (privacyConsent) {
+        privacyConsent.addEventListener('change', function() {
+            validateForm();
+            if (this.checked) {
+                clearError('privacyConsentError');
+            }
+        });
+    }
 
     // 성함 입력 검증 (글로벌 유저 고려 - 영문, 한글, 공백만 허용, 특수문자 없이 100자까지)
     let isComposing = false;
@@ -452,6 +488,7 @@ function validateForm() {
     const locationEl = document.getElementById('location');
     const calendarTypeEl = document.getElementById('calendarType');
     const genderEl = document.getElementById('gender');
+    const privacyConsentEl = document.getElementById('privacyConsent');
     const analyzeBtn = document.getElementById('analyzeBtn');
 
     const userName = userNameEl ? userNameEl.value.trim() : '';
@@ -460,6 +497,7 @@ function validateForm() {
     const locationVal = locationEl ? locationEl.value.trim() : '';
     const calendarTypeVal = calendarTypeEl ? calendarTypeEl.value : '';
     const genderVal = genderEl ? genderEl.value : '';
+    const privacyConsent = privacyConsentEl ? privacyConsentEl.checked : false;
 
     // 모든 필드가 입력되었는지 확인
     const isBirthDateValid = birthDateVal && /^\d{8}$/.test(birthDateVal);
@@ -470,11 +508,20 @@ function validateForm() {
                     isBirthTimeValid && 
                     locationVal && 
                     calendarTypeVal &&
-                    genderVal;
+                    genderVal &&
+                    privacyConsent; // 개인정보 동의 체크 추가
 
     // 버튼 활성화/비활성화
     if (analyzeBtn) {
         analyzeBtn.disabled = !isValid;
+    }
+    
+    // 개인정보 동의 에러 메시지 처리
+    const privacyError = document.getElementById('privacyConsentError');
+    if (privacyError) {
+        if (privacyConsent) {
+            privacyError.textContent = '';
+        }
     }
     
     return isValid;
@@ -582,7 +629,9 @@ function convertToLunar(solarDate) {
             isLeapMonth: false
         };
     } catch (error) {
-        console.error('음력 변환 오류:', error);
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.error('음력 변환 오류:', error);
+        }
         const date = new Date(solarDate);
         return {
             year: date.getFullYear(),
@@ -659,7 +708,9 @@ function calculateSajuPalgja(birthDate, birthTime, calendarType) {
             fourPillars: `${yearGan}${yearJi} ${monthGan}${monthJi} ${dayGan}${dayJi} ${hourGan}${hourJi}`
         };
     } catch (error) {
-        console.error('사주 계산 오류:', error);
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.error('사주 계산 오류:', error);
+        }
         return {
             year: { gan: '갑', ji: '자', full: '갑자' },
             month: { gan: '갑', ji: '자', full: '갑자' },
@@ -733,7 +784,9 @@ function calculateAstrology(birthDate, birthTime, location) {
             location: location
         };
     } catch (error) {
-        console.error('점성술 계산 오류:', error);
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.error('점성술 계산 오류:', error);
+        }
         return {
             sun: { sign: '양자리', degree: 0 },
             moon: { sign: '양자리', degree: 0 },
@@ -748,7 +801,9 @@ function addAIMessage(text) {
     return new Promise((resolve) => {
         const chatMessages = document.getElementById('chatMessages');
         if (!chatMessages) {
-            console.error('chatMessages 요소를 찾을 수 없습니다');
+            if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+                console.error('chatMessages 요소를 찾을 수 없습니다');
+            }
             resolve();
             return;
         }
@@ -822,7 +877,9 @@ async function sendUserMessage() {
             await addAIMessage('죄송합니다. 답변을 생성하는 중 오류가 발생했습니다.');
         }
     } catch (error) {
-        console.error('채팅 오류:', error);
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.error('채팅 오류:', error);
+        }
         const loading = document.getElementById('chatLoading');
         if (loading) loading.remove();
         await addAIMessage('서버 연결에 실패했습니다. 다시 시도해주세요.');
@@ -837,7 +894,9 @@ function showAdditionalQuestion() {
     if (section) {
         section.style.display = 'block';
         section.scrollIntoView({ behavior: 'smooth' });
-        console.log("추가 질문창 활성화 완료");
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') {
+            console.log("추가 질문창 활성화 완료");
+        }
     }
 }
 
