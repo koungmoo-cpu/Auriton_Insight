@@ -170,21 +170,30 @@
         }
         
         .save-info-container {
+            margin: 1rem 0;
+            padding: 0.75rem;
             background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 0.75rem;
         }
         
         .save-info-check {
-            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #94a3b8;
         }
         
-        .save-info-check:hover {
-            color: rgba(255, 255, 255, 0.9);
+        .save-info-check input[type="checkbox"] {
+            width: 1.1rem;
+            height: 1.1rem;
         }
         
-        .save-info-check input[type="checkbox"]:checked {
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            border-color: transparent;
+        .privacy-notice {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.5rem;
         }
         
         .answer-box {
@@ -210,6 +219,15 @@
         .answers-area {
             max-height: 400px;
             overflow-y: auto;
+            min-height: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .answers-area:empty {
+            display: none;
         }
         
         ::-webkit-scrollbar { width: 6px; }
@@ -320,10 +338,10 @@
             </div>
             
             <!-- 정보 저장 옵션 -->
-            <div class="save-info-container mt-4 p-3 bg-blue-500/10 rounded-xl">
-                <label class="save-info-check flex items-center gap-2 cursor-pointer text-sm text-white/70">
-                    <input type="checkbox" id="saveInfoCheck" class="w-4 h-4 text-blue-600 bg-transparent border-white/30 rounded focus:ring-blue-500 focus:ring-2">
-                    <span>💾 내 정보 저장하기 (이 기기에만 저장됩니다)</span>
+            <div class="save-info-container">
+                <label class="save-info-check">
+                    <input type="checkbox" id="saveInfoCheck">
+                    <span>내 정보 저장하기 (이 기기에만 저장됩니다)</span>
                 </label>
             </div>
             
@@ -345,12 +363,12 @@
         <div id="additional-question-section" class="result-container rounded-3xl mt-6 p-6" style="display: none;">
             <label class="label-text block mb-3 font-bold">💬 AI 상담사에게 추가 질문하기</label>
             
-            <!-- 답변 영역 (최신 답변이 질문창 바로 위) -->
-            <div id="answersArea" class="answers-area mb-4 space-y-4"></div>
+            <!-- 답변 영역 (질문창 위에 위치) -->
+            <div id="answersArea" class="answers-area mb-4 space-y-4 min-h-0"></div>
             
             <div class="relative">
-                <textarea id="userQuestion" maxlength="200" class="input-field w-full p-4 pb-10 rounded-2xl resize-none" placeholder="상담 내용 중 궁금한 점을 물어보세요." rows="3"></textarea>
-                <div class="absolute bottom-3 right-4 text-xs text-white/50">
+                <textarea id="userQuestion" maxlength="200" class="input-field w-full p-4 pb-10 rounded-2xl resize-none" placeholder="상담 내용 중 궁금한 점을 물어보세요." rows="4"></textarea>
+                <div class="char-count absolute bottom-3 right-4 text-xs text-white/50">
                     <span id="charCount" class="font-semibold">0</span>/200
                 </div>
             </div>
@@ -358,9 +376,10 @@
         </div>
         
         <!-- 푸터 -->
-        <div class="text-center mt-8 text-white/30 text-sm">
+        <footer class="text-center mt-8 text-white/30 text-sm">
             <p>© 2025 Auriton InsightAI. All rights reserved.</p>
-        </div>
+            <p class="privacy-notice">※ 입력하신 개인정보는 서버에 저장되지 않습니다.</p>
+        </footer>
     </div>
 
     <!-- 모든 JavaScript를 여기에 통합 -->
@@ -407,6 +426,11 @@
         const answersArea = document.getElementById('answersArea');
         
         if (!answersArea) return;
+        
+        // 답변 영역이 비어있으면 표시
+        if (answersArea.children.length === 0) {
+            answersArea.style.display = 'block';
+        }
         
         const answerBox = document.createElement('div');
         answerBox.className = 'answer-box';
